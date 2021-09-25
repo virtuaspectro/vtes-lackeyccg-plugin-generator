@@ -65,20 +65,22 @@ module.exports = {
   },
   removeSpecialChars: function (name) {
     return name
-      .normalize('NFD') // Converte os caracteres acentuados em caracteres regulares
+      .normalize('NFD') // Convert accented words into regular ones
       .replace(/[\u0300-\u036f|\{|\}|\/]/g, '')
       .replace(/[\-|\—|\-]/g, '-')
-      .replace(/\œ/, 'oe')
+      .replace(/[ł]/, 'l')
+      .replace(/[œ]/, 'oe')
       .replace('  ', ' ');
   },
   simplifyName: function (name) {
     if (!name) return '';
 
     return name
-      .normalize('NFD') // Converte os caracteres acentuados em caracteres regulares
-      .replace(/[\u0300-\u036f|\s|,|\.|\"|\'|\-|\!|\:|\(|\)|\—|\/]/g, '') // Range do Unicode para aplicar a conversão, e mais outros caracteres
-      .replace(/\œ/, 'oe') // Para lidar com nomes como 'Sacré-Cœeur Cathedral, France'
-      .toLowerCase(); // Converte tudo para Lower Case
+      .normalize('NFD') // Convert accented words into regular ones
+      .replace(/[\u0300-\u036f|\s|,|\.|\"|\'|\-|\!|\:|\(|\)|\—|\/]/g, '') // Removes unwanted special chars
+      .replace(/[œ]/, 'oe') // To deal with 'Sacré-Cœeur Cathedral, France'
+      .replace(/[ł]/, 'l') // To deal with 'Bolesław Gutowski'
+      .toLowerCase();
   },
   generate: async function () {
     let outputLackey = `Name\tSET\tImageFile\tExpansion\tType\tClan\tGroup\tCapacity\tDiscipline\tPoolCost\tBloodCost\tText\tRarity\tArtist\n`;

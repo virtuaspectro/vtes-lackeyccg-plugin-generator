@@ -2,10 +2,10 @@ const csv = require('csvtojson');
 const fs = require('fs');
 const { basePath } = require('./file.module.js');
 
-const libraryOld = basePath(`/vtescsv/old/vteslib.csv`);
-const cryptOld = basePath(`/vtescsv/old/vtescrypt.csv`);
-const libraryNew = basePath(`/vtescsv/new/vteslib.csv`);
-const cryptNew = basePath(`/vtescsv/new/vtescrypt.csv`);
+const libraryOld = basePath(`vtescsv/old/vteslib.csv`);
+const cryptOld = basePath(`vtescsv/old/vtescrypt.csv`);
+const libraryNew = basePath(`vtescsv/new/vteslib.csv`);
+const cryptNew = basePath(`vtescsv/new/vtescrypt.csv`);
 
 const getJsonFromCSV = (path) => {
   const file = fs.readFileSync(path, { encoding: 'utf8' });

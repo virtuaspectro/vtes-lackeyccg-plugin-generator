@@ -60,8 +60,8 @@ const copy = (done, failed) => {
 };
 
 const getCSVFiles = async () => {
-  await new Promise(extract);
   await new Promise(move);
+  await new Promise(extract);
 };
 
 module.exports = { basePath, getCSVFiles };
