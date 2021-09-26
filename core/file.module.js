@@ -19,9 +19,9 @@ const extract = (done, failed) => {
 };
 
 const move = (done, failed) => {
-  fs.readdir(newPath, (err, files) => {
-    if (err) {
-      failed(err);
+  fs.readdir(newPath, (readErr, files) => {
+    if (readErr) {
+      failed(readErr);
       return;
     }
     files.forEach((file) => {

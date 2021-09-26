@@ -1,6 +1,8 @@
 const { getCSVFiles } = require('./core/file.module.js');
 const { getHeader, download } = require('./core/request.module.js');
 const { getCardLists } = require('./core/csv.module.js');
+const { getEnv, hasEnv } = require('./core/process.module.js');
+
 const diff = require('./core/diff.module.js');
 const allSets = require('./core/allSets.module.js');
 
@@ -14,11 +16,14 @@ const url = 'https://www.vekn.net/images/stories/downloads/vtescsv_utf8.zip';
     const fileTimestamp = new Date(header['last-modified']).valueOf();
     const currentTimestamp = new Date().valueOf();
 
-    // Checks if ZIP file is newer than the current one
-    if (fileTimestamp <= currentTimestamp) {
+    // Checks if ZIP file is newer than the current one, or keep going if --force env arg is present
+    if (fileTimestamp <= currentTimestamp && !hasEnv('--force')) {
       console.log('Download not needed');
       return;
     }
+
+    // TESTANDO node . --force -teste="Fala sério, cara"
+    console.log(getEnv('-teste'));
 
     // Downloads ZIP containing CSV files from vekn.net
     await download(url);
@@ -33,7 +38,6 @@ const url = 'https://www.vekn.net/images/stories/downloads/vtescsv_utf8.zip';
     const results = diff.get(cardLists);
 
     if (results.totalChanges > 0) {
-      console.log(results.affectedCards);
       // Generates allSets file from new CSV in vtes-plugin/high directory
       await allSets.generate();
 
@@ -42,6 +46,9 @@ const url = 'https://www.vekn.net/images/stories/downloads/vtescsv_utf8.zip';
 
       // Prints cards missing from allsets.txt
       console.log(missingCards);
+
+      // Prints card lists in fileName format
+      console.log(results.affectedCards);
 
       //TODO: Create new uninstall.txt based on affected cards
       //TODO: Create new version.txt file
