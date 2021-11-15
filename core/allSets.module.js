@@ -12,6 +12,9 @@ module.exports = {
   },
   parser: function (json) {
     const samples = [];
+    let previousCardName = '';
+    let previousCardGroup = 0;
+
     json.forEach((card) => {
       try {
         const text = card['Card Text'];
@@ -21,7 +24,14 @@ module.exports = {
         const cardData = [
           `${this.removeSpecialChars(card.Name)}${card.Adv ? ' (ADV)' : ''}`,
           expansions.firstSet,
-          this.getImageFileName(card.Name, card.Adv, card.Type),
+          this.getImageFileName(
+            card.Name,
+            card.Adv,
+            card.Type,
+            card.Group,
+            previousCardName,
+            previousCardGroup,
+          ),
           expansions.lastSet.split('-')[0],
           card.Type,
           card.Clan,
@@ -34,6 +44,10 @@ module.exports = {
           card.Set.replace(/Promo-\d+/, 'Promo'),
           this.removeSpecialChars(card.Artist),
         ];
+
+        // Store previous name for group comparison (Victoria Ash, Gilbert Duane, etc)
+        previousCardName = card.Name;
+        previousCardGroup = card.Group;
 
         samples.push(cardData.join('\t'));
       } catch (e) {
@@ -55,9 +69,19 @@ module.exports = {
   isCrypt: function (type) {
     return ['Imbued', 'Vampire'].some((t) => t === type);
   },
-  getImageFileName: function (name, adv, type) {
+  getImageFileName: function (
+    name,
+    adv,
+    type,
+    group,
+    previousName,
+    previousGroup,
+  ) {
     const fullName = name + (adv ? 'adv' : '');
     let imageName = this.simplifyName(fullName);
+
+    if (name === previousName && group !== previousGroup)
+      imageName += `g${group}`;
 
     if (this.isCrypt(type)) imageName += ',cardbackcrypt';
 
