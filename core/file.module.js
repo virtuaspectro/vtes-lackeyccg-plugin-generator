@@ -5,9 +5,10 @@ const basePath = (path) => `${process.cwd()}/${path}`;
 
 const oldPath = basePath('vtescsv/old');
 const newPath = basePath('vtescsv/new');
+const zipPath = basePath('vtescsv/vtescsv_utf8.zip');
 
 const extract = (done, failed) => {
-  fs.createReadStream(basePath('vtescsv/vtescsv_utf8.zip')).pipe(
+  fs.createReadStream(zipPath).pipe(
     unzip
       .Extract({ path: newPath })
       .on('close', () => {
@@ -19,9 +20,9 @@ const extract = (done, failed) => {
 };
 
 const move = (done, failed) => {
-  fs.readdir(newPath, (err, files) => {
-    if (err) {
-      failed(err);
+  fs.readdir(newPath, (readErr, files) => {
+    if (readErr) {
+      failed(readErr);
       return;
     }
     files.forEach((file) => {
@@ -60,8 +61,19 @@ const copy = (done, failed) => {
 };
 
 const getCSVFiles = async () => {
-  await new Promise(extract);
   await new Promise(move);
+  await new Promise(extract);
 };
 
-module.exports = { basePath, getCSVFiles };
+const getZipDate = async () => {
+  return new Promise(getDate);
+};
+
+const getDate = (done, failed) => {
+  fs.stat(zipPath, (err, stats) => {
+    if (err) failed();
+    done(stats.mtime);
+  });
+};
+
+module.exports = { basePath, getCSVFiles, getZipDate };

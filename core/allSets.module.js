@@ -12,6 +12,9 @@ module.exports = {
   },
   parser: function (json) {
     const samples = [];
+    let previousCardName = '';
+    let previousCardGroup = 0;
+
     json.forEach((card) => {
       try {
         const text = card['Card Text'];
@@ -21,7 +24,14 @@ module.exports = {
         const cardData = [
           `${this.removeSpecialChars(card.Name)}${card.Adv ? ' (ADV)' : ''}`,
           expansions.firstSet,
-          this.getImageFileName(card.Name, card.Adv, card.Type),
+          this.getImageFileName(
+            card.Name,
+            card.Adv,
+            card.Type,
+            card.Group,
+            previousCardName,
+            previousCardGroup,
+          ),
           expansions.lastSet.split('-')[0],
           card.Type,
           card.Clan,
@@ -34,6 +44,10 @@ module.exports = {
           card.Set.replace(/Promo-\d+/, 'Promo'),
           this.removeSpecialChars(card.Artist),
         ];
+
+        // Store previous name for group comparison (Victoria Ash, Gilbert Duane, etc)
+        previousCardName = card.Name;
+        previousCardGroup = card.Group;
 
         samples.push(cardData.join('\t'));
       } catch (e) {
@@ -55,9 +69,19 @@ module.exports = {
   isCrypt: function (type) {
     return ['Imbued', 'Vampire'].some((t) => t === type);
   },
-  getImageFileName: function (name, adv, type) {
+  getImageFileName: function (
+    name,
+    adv,
+    type,
+    group,
+    previousName,
+    previousGroup,
+  ) {
     const fullName = name + (adv ? 'adv' : '');
     let imageName = this.simplifyName(fullName);
+
+    if (name === previousName && group !== previousGroup)
+      imageName += `g${group}`;
 
     if (this.isCrypt(type)) imageName += ',cardbackcrypt';
 
@@ -65,20 +89,22 @@ module.exports = {
   },
   removeSpecialChars: function (name) {
     return name
-      .normalize('NFD') // Converte os caracteres acentuados em caracteres regulares
+      .normalize('NFD') // Convert accented words into regular ones
       .replace(/[\u0300-\u036f|\{|\}|\/]/g, '')
       .replace(/[\-|\—|\-]/g, '-')
-      .replace(/\œ/, 'oe')
+      .replace(/[ł]/, 'l')
+      .replace(/[œ]/, 'oe')
       .replace('  ', ' ');
   },
   simplifyName: function (name) {
     if (!name) return '';
 
     return name
-      .normalize('NFD') // Converte os caracteres acentuados em caracteres regulares
-      .replace(/[\u0300-\u036f|\s|,|\.|\"|\'|\-|\!|\:|\(|\)|\—|\/]/g, '') // Range do Unicode para aplicar a conversão, e mais outros caracteres
-      .replace(/\œ/, 'oe') // Para lidar com nomes como 'Sacré-Cœeur Cathedral, France'
-      .toLowerCase(); // Converte tudo para Lower Case
+      .normalize('NFD') // Convert accented words into regular ones
+      .replace(/[\u0300-\u036f|\s|,|\.|\"|\'|\-|\!|\:|\(|\)|\—|\/]/g, '') // Removes unwanted special chars
+      .replace(/[œ]/, 'oe') // To deal with 'Sacré-Cœeur Cathedral, France'
+      .replace(/[ł]/, 'l') // To deal with 'Bolesław Gutowski'
+      .toLowerCase();
   },
   generate: async function () {
     let outputLackey = `Name\tSET\tImageFile\tExpansion\tType\tClan\tGroup\tCapacity\tDiscipline\tPoolCost\tBloodCost\tText\tRarity\tArtist\n`;
