@@ -20,18 +20,18 @@ module.exports = {
         const text = card['Card Text'];
         const expansions = this.parseCardSet(card.Set, card.Type);
         const cardText = text ? text.replace(/(?:\r\n|\r|\n)/g, ' ') : '';
+        const formattedCardName = this.formatCardName(
+          card.Name,
+          card.Adv,
+          card.Group,
+          previousCardName,
+          previousCardGroup,
+        );
 
         const cardData = [
-          `${this.removeSpecialChars(card.Name)}${card.Adv ? ' (ADV)' : ''}`,
+          formattedCardName,
           expansions.firstSet,
-          this.getImageFileName(
-            card.Name,
-            card.Adv,
-            card.Type,
-            card.Group,
-            previousCardName,
-            previousCardGroup,
-          ),
+          this.getImageFileName(formattedCardName, card.Type),
           expansions.lastSet.split('-')[0],
           card.Type,
           card.Clan,
@@ -56,6 +56,13 @@ module.exports = {
     });
     return samples.join('\n');
   },
+  formatCardName: function (name, adv, group, previousName, previousGroup) {
+    let formattedCardName = this.removeSpecialChars(name);
+    if (adv) formattedCardName += ' (ADV)';
+    if (name === previousName && group !== previousGroup)
+      formattedCardName += ` (G${group})`;
+    return formattedCardName;
+  },
   parseCardSet: function (set, type) {
     const setList = set.split(',');
     const setSize = setList.length;
@@ -69,19 +76,8 @@ module.exports = {
   isCrypt: function (type) {
     return ['Imbued', 'Vampire'].some((t) => t === type);
   },
-  getImageFileName: function (
-    name,
-    adv,
-    type,
-    group,
-    previousName,
-    previousGroup,
-  ) {
-    const fullName = name + (adv ? 'adv' : '');
-    let imageName = this.simplifyName(fullName);
-
-    if (name === previousName && group !== previousGroup)
-      imageName += `g${group}`;
+  getImageFileName: function (formattedCardName, type) {
+    let imageName = this.simplifyName(formattedCardName);
 
     if (this.isCrypt(type)) imageName += ',cardbackcrypt';
 
