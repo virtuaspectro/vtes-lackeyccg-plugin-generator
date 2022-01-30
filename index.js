@@ -2,6 +2,8 @@ const { getCSVFiles, getZipDate } = require('./core/file.module.js');
 const { getHeader, download } = require('./core/request.module.js');
 const { getCardLists } = require('./core/csv.module.js');
 const { getEnv, hasEnv } = require('./core/process.module.js');
+const { hasImagesAvailable } = require('./core/remoteImages.module.js');
+
 const { exec } = require('child_process');
 
 const diff = require('./core/diff.module.js');
@@ -20,8 +22,6 @@ function showWindowsNotification(title, text, exit = false) {
 
 (async () => {
   try {
-    console.log();
-
     // Gets header info from ZIP file on vekn.net without downloading it
     const header = await getHeader(url);
 
@@ -29,12 +29,14 @@ function showWindowsNotification(title, text, exit = false) {
     const currentTimestampPromise = await getZipDate();
     const currentTimestamp = currentTimestampPromise.valueOf();
 
+    const lastUpdatedImages = await hasImagesAvailable();
+
     // Checks if ZIP file is newer than the current one, or keep going if --force env arg is present
     if (fileTimestamp <= currentTimestamp && !hasEnv('--force')) {
       console.log('Download not needed');
       return showWindowsNotification(
         'LackeyCCG Updater',
-        'Não há atualizações do CSV disponíveis',
+        `Não há atualizações do CSV disponíveis. Imagens alteradas pela ultima vez em ${lastUpdatedImages}`,
         true,
       );
     }
@@ -69,7 +71,7 @@ function showWindowsNotification(title, text, exit = false) {
 
       showWindowsNotification(
         'LackeyCCG Updater',
-        `CSV foi atualizado na VEKN com ${results.affectedCards.length} alterações`,
+        `CSV foi atualizado na VEKN com ${results.affectedCards.length} alterações. Imagens alteradas pela ultima vez em ${lastUpdatedImages}`,
         true,
       );
 
@@ -81,7 +83,7 @@ function showWindowsNotification(title, text, exit = false) {
     } else {
       showWindowsNotification(
         'LackeyCCG Updater',
-        'CSV foi atualizado na VEKN, mas não há alterações',
+        `CSV foi atualizado na VEKN, mas não há alterações. Imagens alteradas pela ultima vez em ${lastUpdatedImages}`,
         true,
       );
     }

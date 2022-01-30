@@ -10,8 +10,7 @@ const prepareDownloadIfNeeded = (url, method) => {
   const segments = url.split('/');
   const filePath = basePath(`/vtescsv/${segments[segments.length - 1]}`);
   fs.unlink(filePath, () => {});
-  const file = fs.createWriteStream(filePath);
-  return file;
+  return fs.createWriteStream(filePath);
 };
 
 const makeRequest = (url, method, body) => {

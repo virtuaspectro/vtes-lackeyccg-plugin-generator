@@ -31,7 +31,7 @@ module.exports = {
         const cardData = [
           formattedCardName,
           expansions.firstSet,
-          this.getImageFileName(formattedCardName, card.Type),
+          this.getImageFileName(formattedCardName, card.Type, card.Group),
           expansions.lastSet.split('-')[0],
           card.Type,
           card.Clan,
@@ -76,10 +76,24 @@ module.exports = {
   isCrypt: function (type) {
     return ['Imbued', 'Vampire'].some((t) => t === type);
   },
-  getImageFileName: function (formattedCardName, type) {
+  getImageFileName: function (formattedCardName, type, group) {
     let imageName = this.simplifyName(formattedCardName);
 
-    if (this.isCrypt(type)) imageName += ',cardbackcrypt';
+    if (this.isCrypt(type)) {
+      const hasGrouping = /\g\d$/.test(imageName);
+
+      if (group.toLowerCase() !== 'any') {
+        imageName += hasGrouping ? '' : `g${group}`;
+      }
+
+      const isAdvanced = /advg\d$/.test(imageName);
+
+      if (isAdvanced) {
+        imageName = imageName.replace(/advg\d$/, `g${group}adv`);
+      }
+
+      imageName += ',cardbackcrypt';
+    }
 
     return imageName;
   },
